@@ -29,7 +29,7 @@
     <meta property="twitter:title" content="المستشار الاستراتيجي الذكي">
     <meta property="twitter:description" content="حول بيانات عملك إلى خطط استراتيجية وأدلة تشغيلية في ثوانٍ.">
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Keep for basic styling if Tailwind build fails, though Vite handles it) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Google Analytics 4 -->
@@ -41,16 +41,17 @@
       gtag('config', 'G-XXXXXXXXXX');
     </script>
     
-    <!-- Env Polyfill for Browser Preview/Runtime -->
+    <!-- Env Polyfill: Critical for API Keys to work in browser runtime -->
     <script>
       window.process = {
         env: {
-          API_KEY: process.env.API_KEY,
-          VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
-          VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY
+          API_KEY: process.env.API_KEY || '',
+          VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || '',
+          VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || ''
         }
       };
     </script>
+    <!-- REMOVED IMPORTMAP: We rely on Vite build now -->
 <script type="importmap">
 {
   "imports": {
