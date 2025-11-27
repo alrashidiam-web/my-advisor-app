@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, type ErrorInfo, type ReactNode } from 'react';
 import type { BusinessData, SavedReport, User } from './types';
 import { generateAnalysis } from './services/geminiService';

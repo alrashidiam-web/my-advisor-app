@@ -1,11 +1,40 @@
 
 export const getEnv = (key: string): string => {
-  // In Vite/Vercel, variables are exposed via import.meta.env
-  // We check for the key directly or with VITE_ prefix
-  const meta = import.meta as any;
-  if (meta.env) {
-    return meta.env[key] || meta.env[`VITE_${key}`] || '';
+  // 1. Try Vite/Modern (import.meta.env)
+  try {
+    const meta = import.meta as any;
+    if (meta && meta.env) {
+      const val = meta.env[key] || meta.env[`VITE_${key}`];
+      if (val) return val;
+    }
+  } catch (e) {
+    // Ignore if import.meta is not supported
   }
+
+  // 2. Try Global Process (Node/Webpack/Preview)
+  // We explicitly check specific keys to ensure bundlers that perform static replacement (DefinePlugin) catch them.
+  try {
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env) {
+      // @ts-ignore
+      if (key === 'API_KEY' && process.env.API_KEY) return process.env.API_KEY;
+      // @ts-ignore
+      const val = process.env[key] || process.env[`VITE_${key}`];
+      if (val) return val;
+    }
+  } catch (e) {
+    // Ignore
+  }
+
+  // 3. Try Window Polyfill (window.process.env)
+  try {
+    // @ts-ignore
+    if (typeof window !== 'undefined' && window.process && window.process.env) {
+       // @ts-ignore
+       return window.process.env[key] || window.process.env[`VITE_${key}`] || '';
+    }
+  } catch(e) {}
+
   return '';
 };
 
