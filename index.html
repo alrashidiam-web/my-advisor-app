@@ -29,9 +29,6 @@
     <meta property="twitter:title" content="المستشار الاستراتيجي الذكي">
     <meta property="twitter:description" content="حول بيانات عملك إلى خطط استراتيجية وأدلة تشغيلية في ثوانٍ.">
 
-    <!-- Tailwind CSS (Keep for basic styling if Tailwind build fails, though Vite handles it) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
@@ -40,18 +37,7 @@
       gtag('js', new Date());
       gtag('config', 'G-XXXXXXXXXX');
     </script>
-    
-    <!-- Env Polyfill: Critical for API Keys to work in browser runtime -->
-    <script>
-      window.process = {
-        env: {
-          API_KEY: process.env.API_KEY || '',
-          VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || '',
-          VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || ''
-        }
-      };
-    </script>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
