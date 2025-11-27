@@ -29,11 +29,20 @@
     <meta property="twitter:title" content="المستشار الاستراتيجي الذكي">
     <meta property="twitter:description" content="حول بيانات عملك إلى خطط استراتيجية وأدلة تشغيلية في ثوانٍ.">
 
-    <!-- Tailwind CSS (CDN for simplicity in this setup, ensuring styles work without complex postcss config) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
-      // Polyfill for process.env to work in browser environments that expect node-style env vars
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    
+    <!-- Env Polyfill for Browser Preview -->
+    <script>
       window.process = {
         env: {
           API_KEY: process.env.API_KEY,
@@ -42,7 +51,7 @@
         }
       };
     </script>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
