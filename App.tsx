@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, type ErrorInfo, type ReactNode } from 'react';
 import type { BusinessData, SavedReport, User } from './types';
 import { generateAnalysis } from './services/geminiService';
@@ -28,7 +29,10 @@ interface ErrorBoundaryState {
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false };
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     return { hasError: true };
@@ -262,7 +266,7 @@ const App: React.FC = () => {
       case 'analysis':
         if (analysisResult && currentBusinessData) {
           return (
-            <div className="max-w-7xl mx-auto p-4 sm:p-6">
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <AnalysisDisplay 
                   analysis={analysisResult} 
                   businessData={currentBusinessData} 
@@ -283,7 +287,7 @@ const App: React.FC = () => {
       case 'form':
       default:
         return (
-            <div className="max-w-4xl mx-auto p-4 sm:p-6">
+            <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
                 <InputForm onAnalyze={handleAnalysisRequest} onViewHistory={handleViewHistory} hasHistory={!!currentUser && savedReports.length > 0} isAuthenticated={!!currentUser} />
             </div>
         );
@@ -294,37 +298,39 @@ const App: React.FC = () => {
   const isLanding = currentView === 'landing';
 
   return (
-    <div className="min-h-screen text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900 flex flex-col">
+    <div className="min-h-screen text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900 flex flex-col font-sans">
        {shouldShowTour && <Tour onComplete={handleTourComplete} />}
        
-       <header className={`w-full ${isLanding ? 'fixed top-0 left-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800' : 'bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800'} transition-all duration-300`}>
+       <header className={`w-full ${isLanding ? 'fixed top-0 left-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800' : 'bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm'} transition-all duration-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16 sm:h-20">
                 {/* Left: Logo */}
-                <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={handleGoHome}>
-                     <LogoIcon className="w-8 h-8 sm:w-10 sm:h-10 text-sky-500" />
-                     <h1 className="ml-3 text-xl sm:text-2xl font-bold text-slate-900 dark:text-white hidden sm:block">
-                        {t('app.title')} <span className="text-sky-500">{t('app.gbt')}</span>
+                <div className="flex-shrink-0 flex items-center cursor-pointer group" onClick={handleGoHome}>
+                     <div className="transform group-hover:scale-110 transition-transform duration-200">
+                        <LogoIcon className="w-8 h-8 sm:w-10 sm:h-10 text-sky-600 dark:text-sky-500" />
+                     </div>
+                     <h1 className="ms-3 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white hidden sm:block tracking-tight">
+                        {t('app.title')} <span className="text-sky-600 dark:text-sky-500">{t('app.gbt')}</span>
                     </h1>
                 </div>
                 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                     <LanguageSwitcher />
-                    <div className="h-6 w-px bg-slate-300 dark:bg-slate-700"></div>
+                    <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block"></div>
                     <Auth user={currentUser} onLogout={handleLogout} />
                 </div>
             </div>
         </div>
       </header>
       
-      <main className={`flex-grow ${isLanding ? '' : 'pt-8'}`}>
+      <main className={`flex-grow ${isLanding ? '' : 'pt-4'}`}>
         <ErrorBoundary onReset={handleStartNew} t={t}>
           {renderContent()}
         </ErrorBoundary>
       </main>
       
-      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8 text-center text-slate-500 dark:text-slate-400 text-sm mt-auto">
         <div className="max-w-7xl mx-auto px-4">
             <p>{t('app.footer')}</p>
         </div>
