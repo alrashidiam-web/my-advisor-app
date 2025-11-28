@@ -11,41 +11,45 @@ export const getEnv = (key: string): string => {
     // Ignore if import.meta is not supported
   }
 
-  // 2. Try Global Process (Node/Webpack/Preview) and Vite 'define' Replacements
-  try {
-    // @ts-ignore
-    if (typeof process !== 'undefined') {
-      // Explicitly check known keys to allow Vite's static 'define' replacement to work.
-      // Dynamic access (process.env[key]) will NOT be replaced by Vite.
-      
-      if (key === 'API_KEY') {
-          // @ts-ignore
-          if (typeof process.env.API_KEY !== 'undefined') return process.env.API_KEY;
-      }
-      
-      if (key === 'VITE_SUPABASE_URL' || key === 'SUPABASE_URL') {
-          // @ts-ignore
-          if (typeof process.env.VITE_SUPABASE_URL !== 'undefined') return process.env.VITE_SUPABASE_URL;
-      }
-
-      if (key === 'VITE_SUPABASE_ANON_KEY' || key === 'SUPABASE_ANON_KEY') {
-          // @ts-ignore
-          if (typeof process.env.VITE_SUPABASE_ANON_KEY !== 'undefined') return process.env.VITE_SUPABASE_ANON_KEY;
-      }
-
-      // Fallback for Node.js environments or if process.env is actually an object
+  // 2. Direct checks for static replacements (Vite 'define')
+  // CRITICAL FIX: We must check these specific keys OUTSIDE of any 'if (process)' check.
+  // Vite replaces the string 'process.env.API_KEY' with the actual value at build time.
+  // If we wrap this in 'if (typeof process !== undefined)', the browser skips it because 'process' is undefined.
+  
+  if (key === 'API_KEY') {
+    try {
       // @ts-ignore
-      if (process.env) {
-         // @ts-ignore
-         const val = process.env[key] || process.env[`VITE_${key}`];
-         if (val) return val;
+      if (typeof process.env.API_KEY !== 'undefined') {
+          // @ts-ignore
+          return process.env.API_KEY;
       }
-    }
-  } catch (e) {
-    // Ignore
+    } catch (e) {}
+  }
+  
+  if (key === 'VITE_SUPABASE_URL' || key === 'SUPABASE_URL') {
+    try {
+      // @ts-ignore
+      if (typeof process.env.VITE_SUPABASE_URL !== 'undefined') return process.env.VITE_SUPABASE_URL;
+    } catch (e) {}
   }
 
-  // 3. Try Window Polyfill (window.process.env)
+  if (key === 'VITE_SUPABASE_ANON_KEY' || key === 'SUPABASE_ANON_KEY') {
+    try {
+      // @ts-ignore
+      if (typeof process.env.VITE_SUPABASE_ANON_KEY !== 'undefined') return process.env.VITE_SUPABASE_ANON_KEY;
+    } catch (e) {}
+  }
+
+  // 3. Fallback to global process (e.g. if simple Node script)
+  try {
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env) {
+        // @ts-ignore
+        return process.env[key] || process.env[`VITE_${key}`];
+    }
+  } catch (e) {}
+
+  // 4. Try Window Polyfill (window.process.env) - Last resort
   try {
     // @ts-ignore
     if (typeof window !== 'undefined' && window.process && window.process.env) {
@@ -146,8 +150,6 @@ export const simpleTextToHtml = (text: string): string => {
       .replace(/^\s*[-*] (.*$)/gim, '<li class="flex items-start gap-2 mb-2 text-slate-700 dark:text-slate-300"><span class="mt-1.5 w-1.5 h-1.5 bg-sky-500 rounded-full flex-shrink-0"></span><span>$1</span></li>')
       .replace(/\n/g, '<br />');
 
-    // Clean up list formatting (grouping lis is hard with regex replace only, but styling li with flex makes them look okay individually)
-    // Removing extra BRs around lists for cleaner spacing
     html = html.replace(/<br \/>(\s*<li)/g, '$1');
     html = html.replace(/(<\/li>)<br \/>/g, '$1');
 
