@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DownloadIcon, DocumentDuplicateIcon, CheckIcon, BanknotesIcon, ClipboardDocumentListIcon, BriefcaseIcon, PdfIcon, StarIcon, ChartBarIcon } from './icons';
+import { DownloadIcon, DocumentDuplicateIcon, CheckIcon, BanknotesIcon, ClipboardDocumentListIcon, BriefcaseIcon, PdfIcon, WordIcon, StarIcon, ChartBarIcon } from './icons';
 import type { BusinessData, ManualType, KPIBenchmark } from '../types';
 import { generateManual, getKeyPerformanceIndicators } from '../services/geminiService';
 import { submitFeedback } from '../services/supabaseService';
@@ -69,6 +69,26 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, businessDat
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadWord = () => {
+    const header = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>Export HTML to Word Document with JavaScript</title></head><body>
+    `;
+    
+    // We remove the dark mode classes for the Word export to keep it clean
+    const content = formattedAnalysis.replace(/class="[^"]*"/g, ''); 
+    const footer = "</body></html>";
+    const sourceHTML = header+content+footer;
+    
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileDownload = document.createElement("a");
+    document.body.appendChild(fileDownload);
+    fileDownload.href = source;
+    fileDownload.download = `${businessData.organization_name}_Analysis.doc`;
+    fileDownload.click();
+    document.body.removeChild(fileDownload);
   };
 
   const handleDownloadPDF = async () => {
@@ -190,8 +210,9 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ analysis, businessDat
                      {copied ? <CheckIcon className="w-4 h-4 text-green-500" /> : <DocumentDuplicateIcon className="w-4 h-4" />}
                      <span>{copied ? t('analysisDisplay.copyButton.copied') : t('analysisDisplay.copyButton.copy')}</span>
                  </button>
-                 <button onClick={handlePrint} className="flex-1 md:flex-none justify-center items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white border border-slate-300 dark:bg-slate-700 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors shadow-sm">
-                     {t('analysisDisplay.printButton')}
+                 <button onClick={handleDownloadWord} className="flex-1 md:flex-none justify-center items-center gap-2 px-4 py-2 text-sm font-bold text-blue-700 bg-blue-50 border border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300 rounded-lg hover:bg-blue-100 transition-colors shadow-sm">
+                     <WordIcon className="w-4 h-4" />
+                     <span>Word</span>
                  </button>
                  <button onClick={handleDownloadPDF} disabled={isGeneratingPdf} className="flex-1 md:flex-none justify-center items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md disabled:opacity-70">
                      <PdfIcon className="w-4 h-4" />
