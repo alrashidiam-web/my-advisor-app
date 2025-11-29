@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, type ErrorInfo, type ReactNode } from 'react';
-import type { BusinessData, SavedReport, User } from './types';
+import type { BusinessData, SavedReport, User, UserProfile } from './types';
 import { generateAnalysis } from './services/geminiService';
-// Import services from supabaseService instead of bubbleService
-import { supabase, getReports, createReport, deleteReport as removeReport, signOut } from './services/supabaseService';
+import { supabase, getReports, createReport, deleteReport as removeReport, signOut, getUserProfile } from './services/supabaseService';
 import InputForm from './components/InputForm';
 import AnalysisDisplay from './components/AnalysisDisplay';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -10,11 +9,12 @@ import Tour from './components/Tour';
 import SavedReports from './components/SavedReports';
 import Auth from './components/Auth';
 import LandingPage from './components/LandingPage';
+import Pricing from './components/Pricing';
 import { LogoIcon } from './components/icons';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
-type View = 'landing' | 'form' | 'loading' | 'analysis' | 'history' | 'error';
+type View = 'landing' | 'form' | 'loading' | 'analysis' | 'history' | 'error' | 'pricing';
 
 // Error Boundary Component
 interface ErrorBoundaryProps {
@@ -46,7 +46,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     this.setState({ hasError: false });
   };
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       const { t } = this.props;
       return (
@@ -81,7 +81,12 @@ const App: React.FC = () => {
   const [showTour, setShowTour] = useState<boolean>(false);
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isReportsLoading, setIsReportsLoading] = useState(false);
+
+  // Auth Modal State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [pendingView, setPendingView] = useState<View | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = i18n.language;
@@ -95,24 +100,37 @@ const App: React.FC = () => {
 
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setCurrentUser(session?.user as unknown as User || null);
+      const user = session?.user as unknown as User || null;
+      setCurrentUser(user);
+      if (user) fetchProfile(user.id);
     });
 
     // Listen for changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUser(session?.user as unknown as User || null);
-      if (session?.user) {
-          // Auto fetch reports on login
+      const user = session?.user as unknown as User || null;
+      setCurrentUser(user);
+      
+      if (user) {
+          // Auto fetch reports and profile on login
           loadReports();
+          fetchProfile(user.id);
+          
+          // CRITICAL: Close modal and redirect if there was a pending view
+          setIsAuthModalOpen(false);
+          if (pendingView) {
+              setCurrentView(pendingView);
+              setPendingView(null);
+          }
       } else {
           setSavedReports([]);
+          setUserProfile(null);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [pendingView]); 
 
   const loadReports = async () => {
       setIsReportsLoading(true);
@@ -121,10 +139,14 @@ const App: React.FC = () => {
           setSavedReports(reports);
       } catch (err) {
           console.error("Failed to load reports:", err);
-          // Don't block UI, just log error
       } finally {
           setIsReportsLoading(false);
       }
+  };
+
+  const fetchProfile = async (userId: string) => {
+    const profile = await getUserProfile(userId);
+    setUserProfile(profile);
   };
 
   // Trigger tour only when entering form view
@@ -180,7 +202,7 @@ const App: React.FC = () => {
         } else if (msg.includes('fetch') || msg.includes('network') || msg.includes('failed to fetch')) {
            errorMessage = t('app.errorModal.networkError');
         } else if (msg.includes('save') || msg.includes('database')) {
-            errorMessage = t('app.errorModal.bubble.saveError'); // Generic save error
+            errorMessage = t('app.errorModal.bubble.saveError');
         } else if (msg.includes('429') || msg.includes('quota') || msg.includes('exhausted')) {
              errorMessage = t('app.errorModal.quotaExceeded');
         } else if (msg.includes('401') || msg.includes('403') || msg.includes('key') || msg.includes('unauthorized')) {
@@ -202,7 +224,15 @@ const App: React.FC = () => {
     setCurrentBusinessData(null);
     setCurrentReportId(null);
     setError(null);
-    setCurrentView('form');
+    
+    // Check if user is logged in
+    if (currentUser) {
+        setCurrentView('form');
+    } else {
+        // If not logged in, prompt login and set pending view
+        setPendingView('form');
+        setIsAuthModalOpen(true);
+    }
   };
   
   const handleGoHome = () => {
@@ -211,6 +241,10 @@ const App: React.FC = () => {
   
   const handleViewHistory = () => {
     setCurrentView('history');
+  }
+
+  const handleViewPricing = () => {
+    setCurrentView('pricing');
   }
 
   const handleViewReport = (report: SavedReport) => {
@@ -226,7 +260,10 @@ const App: React.FC = () => {
       await removeReport(reportId);
       setSavedReports(prevReports => prevReports.filter(r => r.id !== reportId));
       if (currentReportId === reportId) {
-        handleStartNew();
+        setAnalysisResult(null);
+        setCurrentBusinessData(null);
+        setCurrentReportId(null);
+        setCurrentView('form');
       }
     } catch(err) {
        console.error("Failed to delete report:", err);
@@ -239,10 +276,23 @@ const App: React.FC = () => {
     setCurrentView('landing');
   };
 
+  const handleAuthModalClose = () => {
+      setIsAuthModalOpen(false);
+      setPendingView(null);
+  };
+
   const renderContent = () => {
     switch (currentView) {
       case 'landing':
         return <LandingPage onStart={handleStartNew} />;
+      case 'pricing':
+        return (
+          <Pricing 
+            userProfile={userProfile} 
+            onLoginRequest={() => setIsAuthModalOpen(true)}
+            onRefreshProfile={() => currentUser && fetchProfile(currentUser.id)}
+          />
+        );
       case 'loading':
         return (
             <div className="max-w-4xl mx-auto p-6">
@@ -255,7 +305,7 @@ const App: React.FC = () => {
             <h2 className="text-2xl font-bold text-red-500 mb-4">{t('app.errorModal.title')}</h2>
             <p className="text-slate-600 dark:text-slate-300 mb-6">{error}</p>
             <button
-              onClick={handleStartNew}
+              onClick={() => setCurrentView('form')}
               className="px-6 py-2 bg-sky-600 text-white font-semibold rounded-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-75 transition-colors"
             >
               {t('app.errorBoundary.reset')}
@@ -280,7 +330,7 @@ const App: React.FC = () => {
       case 'history':
         return (
             <div className="max-w-4xl mx-auto p-4 sm:p-6">
-                <SavedReports reports={savedReports} isLoading={isReportsLoading} onViewReport={handleViewReport} onDeleteReport={handleDeleteReport} onGoToForm={handleStartNew} />
+                <SavedReports reports={savedReports} isLoading={isReportsLoading} onViewReport={handleViewReport} onDeleteReport={handleDeleteReport} onGoToForm={() => setCurrentView('form')} />
             </div>
         );
       case 'form':
@@ -315,16 +365,28 @@ const App: React.FC = () => {
                 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-3 sm:gap-4">
+                    <button 
+                        onClick={handleViewPricing}
+                        className={`text-sm font-semibold transition-colors ${currentView === 'pricing' ? 'text-sky-600 dark:text-sky-400' : 'text-slate-600 dark:text-slate-300 hover:text-sky-600'}`}
+                    >
+                        {t('app.pricing')}
+                    </button>
                     <LanguageSwitcher />
                     <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block"></div>
-                    <Auth user={currentUser} onLogout={handleLogout} />
+                    <Auth 
+                        user={currentUser} 
+                        onLogout={handleLogout} 
+                        isOpen={isAuthModalOpen}
+                        onOpen={() => setIsAuthModalOpen(true)}
+                        onClose={handleAuthModalClose}
+                    />
                 </div>
             </div>
         </div>
       </header>
       
       <main className={`flex-grow ${isLanding ? '' : 'pt-4'}`}>
-        <ErrorBoundary onReset={handleStartNew} t={t}>
+        <ErrorBoundary onReset={() => window.location.reload()} t={t}>
           {renderContent()}
         </ErrorBoundary>
       </main>

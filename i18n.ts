@@ -1,9 +1,13 @@
 
+
+
+// ... existing imports
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 const translationsEN = {
+  // ... existing translations
   app: {
     title: "Strategic Advisor",
     gbt: "GPT",
@@ -31,7 +35,9 @@ const translationsEN = {
         unknownError: "An unknown error occurred. Please try again later.",
     },
     startNewAnalysis: "New Analysis",
+    pricing: "Pricing",
   },
+  // ... auth, languageSwitcher, landing ...
   auth: {
       login: "Login",
       logout: "Logout",
@@ -95,6 +101,12 @@ const translationsEN = {
         label: "Organization Name",
         help: "This is used to customize the report titles.",
         required: "Organization Name is required.",
+    },
+    legalForm: {
+        label: "Legal Form",
+        placeholder: "e.g., LLC, Joint Stock, Government Entity, Non-profit",
+        help: "Defines the legal structure and liability of the organization.",
+        required: "Legal Form is required.",
     },
     sector: {
         label: "Sector / Industry",
@@ -201,6 +213,7 @@ const translationsEN = {
       analyze: "Generate Analysis",
     }
   },
+  // ... analysisDisplay ...
   analysisDisplay: {
     startNew: "Start New Analysis",
     copyButton: {
@@ -295,10 +308,61 @@ const translationsEN = {
     noReportsHint: "Create a new analysis and it will be saved to your account.",
     viewTooltip: "View Report",
     deleteTooltip: "Delete Report",
+  },
+  // NEW: Pricing Translations
+  pricing: {
+    title: "Choose the Perfect Plan",
+    subtitle: "Scale your business with professional strategic insights.",
+    monthly: "Monthly",
+    yearly: "Yearly",
+    save: "Save",
+    currentPlan: "Current Plan",
+    plans: {
+      free: {
+        name: "Starter",
+        desc: "Essential tools for small businesses.",
+        price: "$0",
+        features: [
+          "Basic Strategic Analysis",
+          "Summary Reports",
+          "1 Saved Report History",
+          "Community Support"
+        ],
+        cta: "Start Free"
+      },
+      pro: {
+        name: "Professional",
+        desc: "Advanced insights for growing companies.",
+        price: "$49",
+        features: [
+          "Comprehensive Big-4 Analysis",
+          "Unlimited Saved Reports",
+          "Financial Policies Generation",
+          "SOPs Generation",
+          "PDF Export (White Label)",
+          "Priority AI Processing"
+        ],
+        cta: "Upgrade to Pro"
+      },
+      enterprise: {
+        name: "Enterprise",
+        desc: "Custom solutions for large organizations.",
+        price: "Custom",
+        features: [
+          "Dedicated Account Manager",
+          "Custom AI Model Fine-tuning",
+          "API Access",
+          "On-premise Deployment Option",
+          "SLA Support"
+        ],
+        cta: "Contact Sales"
+      }
+    }
   }
 };
 
 const translationsAR = {
+  // ... existing translations
   app: {
     title: "المستشار الاستراتيجي",
     gbt: "GPT",
@@ -326,7 +390,9 @@ const translationsAR = {
         unknownError: "حدث خطأ غير معروف. يرجى المحاولة مرة أخرى لاحقًا.",
     },
     startNewAnalysis: "تحليل جديد",
+    pricing: "الأسعار",
   },
+  // ... auth, languageSwitcher, landing ...
   auth: {
       login: "دخول",
       logout: "خروج",
@@ -390,6 +456,12 @@ const translationsAR = {
         label: "اسم المنظمة",
         help: "يستخدم هذا لتخصيص عناوين التقرير.",
         required: "اسم المنظمة مطلوب.",
+    },
+    legalForm: {
+        label: "الشكل القانوني",
+        placeholder: "مثال: ذات مسؤولية محدودة، مساهمة، حكومية، غير ربحية",
+        help: "يحدد الهيكل القانوني للمنظمة ومسؤولياتها.",
+        required: "الشكل القانوني مطلوب.",
     },
     sector: {
         label: "القطاع / الصناعة",
@@ -496,6 +568,7 @@ const translationsAR = {
       analyze: "إنشاء التحليل",
     }
   },
+  // ... analysisDisplay ...
   analysisDisplay: {
     startNew: "بدء تحليل جديد",
     copyButton: {
@@ -590,6 +663,56 @@ const translationsAR = {
     noReportsHint: "قم بإنشاء تحليل جديد وسيتم حفظه في حسابك للمستقبل.",
     viewTooltip: "عرض التقرير",
     deleteTooltip: "حذف التقرير",
+  },
+  // NEW: Pricing Translations
+  pricing: {
+    title: "اختر الباقة المثالية",
+    subtitle: "طوّر أعمالك برؤى استراتيجية احترافية.",
+    monthly: "شهري",
+    yearly: "سنوي",
+    save: "وفر",
+    currentPlan: "باقتك الحالية",
+    plans: {
+      free: {
+        name: "بداية",
+        desc: "أدوات أساسية للشركات الصغيرة.",
+        price: "مجاني",
+        features: [
+          "تحليل استراتيجي أساسي",
+          "تقارير ملخصة",
+          "حفظ تقرير واحد في السجل",
+          "دعم المجتمع"
+        ],
+        cta: "ابدأ مجاناً"
+      },
+      pro: {
+        name: "احترافي",
+        desc: "رؤى متقدمة للشركات النامية.",
+        price: "$49",
+        features: [
+          "تحليل Big-4 شامل",
+          "عدد غير محدود من التقارير المحفوظة",
+          "توليد السياسات المالية",
+          "توليد إجراءات التشغيل (SOPs)",
+          "تصدير PDF (بدون شعار)",
+          "أولوية المعالجة بالذكاء الاصطناعي"
+        ],
+        cta: "رقِّ إلى الاحترافية"
+      },
+      enterprise: {
+        name: "شركات كبرى",
+        desc: "حلول مخصصة للمؤسسات الكبيرة.",
+        price: "مخصص",
+        features: [
+          "مدير حساب مخصص",
+          "تدريب نموذج ذكاء اصطناعي خاص",
+          "وصول عبر API",
+          "خيار النشر المحلي (On-premise)",
+          "اتفاقية مستوى الخدمة (SLA)"
+        ],
+        cta: "تواصل مع المبيعات"
+      }
+    }
   }
 };
 

@@ -1,6 +1,6 @@
 
 import { createClient, User as SupabaseUser } from '@supabase/supabase-js';
-import type { SavedReport, BusinessData, User } from '../types';
+import type { SavedReport, BusinessData, User, UserProfile } from '../types';
 import { getEnv } from '../utils';
 
 // Initialize Supabase Client
@@ -76,6 +76,35 @@ export const getCurrentUser = async (): Promise<User | null> => {
     return session.user as unknown as User;
 };
 
+// --- Profile & Subscription Services ---
+
+export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  
+  if (error) {
+    console.error("Error fetching profile:", error);
+    return null;
+  }
+  return data as UserProfile;
+};
+
+export const upgradeSubscription = async (userId: string, tier: 'pro' | 'enterprise'): Promise<void> => {
+  if (!supabase) return;
+  
+  // In a real app, this would be a backend function called via webhook after Stripe payment
+  const { error } = await supabase
+    .from('profiles')
+    .update({ subscription_tier: tier })
+    .eq('id', userId);
+
+  if (error) throw error;
+};
+
 // --- Database Services ---
 
 export const getReports = async (): Promise<SavedReport[]> => {
@@ -109,7 +138,7 @@ export const createReport = async (reportData: Omit<SavedReport, 'id' | 'date'>)
   }
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("User must be logged in to save report");
+  if (!user) throw new Error("Please login to save your report.");
 
   const row = {
     user_id: user.id,
@@ -124,7 +153,10 @@ export const createReport = async (reportData: Omit<SavedReport, 'id' | 'date'>)
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+      console.error("Supabase Insert Error:", error);
+      throw new Error("Failed to save report to database.");
+  }
   return mapRowToSavedReport(data as ReportRow);
 };
 

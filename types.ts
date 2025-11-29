@@ -1,6 +1,7 @@
 
 export interface BusinessData {
   organization_name: string;
+  legal_form: string;
   sector: string;
   size: string;
   company_location: string;
@@ -57,6 +58,13 @@ export interface User {
   email: string;
   aud: string;
   created_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  subscription_tier: 'free' | 'pro' | 'enterprise';
+  subscription_status: string;
 }
 
 export interface KPIBenchmark {

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import type { BusinessData, Competitor, Template } from '../types';
 import { HistoryIcon, ChevronDownIcon, UploadIcon, TrashIcon, PersonPlusIcon, ShoppingCartIcon, WrenchScrewdriverIcon, BuildingOffice2Icon, XCircleIcon } from './icons';
@@ -12,10 +13,11 @@ interface InputFormProps {
 }
 
 // Define the shape of the errors object for validation
-type FormErrors = Partial<Record<'organization_name' | 'sector' | 'size' | 'company_location' | 'key_departments' | 'current_accounting_system' | 'operational_processes_overview', string>>;
+type FormErrors = Partial<Record<'organization_name' | 'legal_form' | 'sector' | 'size' | 'company_location' | 'key_departments' | 'current_accounting_system' | 'operational_processes_overview', string>>;
 
 const initialFormData: BusinessData = {
     organization_name: '',
+    legal_form: '',
     sector: '',
     size: '',
     company_location: '',
@@ -47,6 +49,7 @@ const InputForm: React.FC<InputFormProps> = ({ onAnalyze, onViewHistory, hasHist
 
   const fieldLabels: Record<keyof FormErrors, string> = useMemo(() => ({
     organization_name: t('inputForm.orgName.label'),
+    legal_form: t('inputForm.legalForm.label'),
     sector: t('inputForm.sector.label'),
     size: t('inputForm.size.label'),
     company_location: t('inputForm.companyLocation.label'),
@@ -65,6 +68,7 @@ const InputForm: React.FC<InputFormProps> = ({ onAnalyze, onViewHistory, hasHist
     const newErrors: FormErrors = {};
     const requiredFields: (keyof FormErrors)[] = [
       'organization_name',
+      'legal_form',
       'sector',
       'size',
       'company_location',
@@ -74,7 +78,8 @@ const InputForm: React.FC<InputFormProps> = ({ onAnalyze, onViewHistory, hasHist
 
     requiredFields.forEach(field => {
       if (!formData[field]?.trim()) {
-        newErrors[field] = t(`inputForm.${field.replace(/_([a-z])/g, (g) => g[1].toUpperCase())}.required`);
+        const key = field === 'legal_form' ? 'legalForm' : field.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        newErrors[field] = t(`inputForm.${key}.required`);
       }
     });
 
@@ -135,7 +140,7 @@ const InputForm: React.FC<InputFormProps> = ({ onAnalyze, onViewHistory, hasHist
     // Only validate required fields that are in our labels map
     if (fieldName in fieldLabels) {
       if (!value.trim()) {
-        const key = fieldName.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        const key = fieldName === 'legal_form' ? 'legalForm' : fieldName.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
         setErrors(prev => ({...prev, [fieldName]: t(`inputForm.${key}.required`)}));
       }
     }
@@ -268,6 +273,11 @@ const InputForm: React.FC<InputFormProps> = ({ onAnalyze, onViewHistory, hasHist
               <label htmlFor="organization_name" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('inputForm.orgName.label')}</label>
               <input type="text" name="organization_name" id="organization_name" required value={formData.organization_name} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('organization_name')} placeholder={t('inputForm.orgName.label')} />
               {errors.organization_name ? (<p className="mt-1.5 text-xs text-red-500 font-medium">{errors.organization_name}</p>) : (<p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{t('inputForm.orgName.help')}</p>)}
+            </div>
+            <div>
+              <label htmlFor="legal_form" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('inputForm.legalForm.label')}</label>
+              <input type="text" name="legal_form" id="legal_form" required value={formData.legal_form} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('legal_form')} placeholder={t('inputForm.legalForm.placeholder')} />
+              {errors.legal_form ? (<p className="mt-1.5 text-xs text-red-500 font-medium">{errors.legal_form}</p>) : (<p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{t('inputForm.legalForm.help')}</p>)}
             </div>
             <div>
               <label htmlFor="sector" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{t('inputForm.sector.label')}</label>
